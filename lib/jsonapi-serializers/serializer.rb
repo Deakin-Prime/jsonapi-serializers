@@ -258,6 +258,7 @@ module JSONAPI
       options[:meta] = options.delete('meta') || options[:meta]
       options[:links] = options.delete('links') || options[:links]
       options[:fields] = options.delete('fields') || options[:fields] || {}
+      options[:show_relationships] = options[:show_relationships].eql?(true)
 
       # Deprecated: use serialize_errors method instead
       options[:errors] = options.delete('errors') || options[:errors]
@@ -287,7 +288,8 @@ module JSONAPI
         namespace: options[:namespace],
         include: includes,
         fields: fields,
-        base_url: options[:base_url]
+        base_url: options[:base_url],
+        show_relationships: options[:show_relationships]
       }
 
       if !options[:skip_collection_check] && options[:is_collection] && !objects.respond_to?(:each)
@@ -415,7 +417,7 @@ module JSONAPI
       meta = serializer.meta
       data['attributes'] = attributes if !attributes.empty?
       data['links'] = links if !links.empty?
-      data['relationships'] = relationships if !relationships.empty?
+      data['relationships'] = relationships if !relationships.empty? && !options[:show_relationships].eql?(false)
       data['jsonapi'] = jsonapi if !jsonapi.nil?
       data['meta'] = meta if !meta.nil?
       data
