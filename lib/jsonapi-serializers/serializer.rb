@@ -259,6 +259,7 @@ module JSONAPI
       options[:links] = options.delete('links') || options[:links]
       options[:fields] = options.delete('fields') || options[:fields] || {}
       options[:show_relationships] = options[:show_relationships].eql?(true)
+      options[:show_relshp_included_data] = options[:show_relshp_included_data].eql?(true)
 
       # Deprecated: use serialize_errors method instead
       options[:errors] = options.delete('errors') || options[:errors]
@@ -355,6 +356,7 @@ module JSONAPI
           included_passthrough_options[:serializer] = find_serializer_class(data[:object], options)
           included_passthrough_options[:namespace] = passthrough_options[:namespace]
           included_passthrough_options[:include_linkages] = data[:include_linkages]
+          included_passthrough_options[:show_relationships] = options[:show_relshp_included_data]
           serialize_primary(data[:object], included_passthrough_options)
         end
       end
