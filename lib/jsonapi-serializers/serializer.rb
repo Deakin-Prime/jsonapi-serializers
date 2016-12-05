@@ -96,35 +96,38 @@ module JSONAPI
         data
       end
 
-      def relationships
+      # Only the included relations shows in relationships
+      def relationships(opts={})
         data = {}
         # Merge in data for has_one relationships.
         has_one_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          data[formatted_attribute_name] = {}
+          if opts[:include] && opts[:include].include?(formatted_attribute_name)
+            data[formatted_attribute_name] = {}
 
-          if attr_data[:options][:include_links]
-            links_self = relationship_self_link(attribute_name)
-            links_related = relationship_related_link(attribute_name)
-            data[formatted_attribute_name]['links'] = {} if links_self || links_related
-            data[formatted_attribute_name]['links']['self'] = links_self if links_self
-            data[formatted_attribute_name]['links']['related'] = links_related if links_related
-          end
+            if attr_data[:options][:include_links]
+              links_self = relationship_self_link(attribute_name)
+              links_related = relationship_related_link(attribute_name)
+              data[formatted_attribute_name]['links'] = {} if links_self || links_related
+              data[formatted_attribute_name]['links']['self'] = links_self if links_self
+              data[formatted_attribute_name]['links']['related'] = links_related if links_related
+            end
 
-          if @_include_linkages.include?(formatted_attribute_name) || attr_data[:options][:include_data]
-            object = has_one_relationship(attribute_name, attr_data)
-            if object.nil?
-              # Spec: Resource linkage MUST be represented as one of the following:
-              # - null for empty to-one relationships.
-              # http://jsonapi.org/format/#document-structure-resource-relationships
-              data[formatted_attribute_name]['data'] = nil
-            else
-              related_object_serializer = JSONAPI::Serializer.find_serializer(object, @options)
-              data[formatted_attribute_name]['data'] = {
-                'type' => related_object_serializer.type.to_s,
-                'id' => related_object_serializer.id.to_s,
-              }
+            if @_include_linkages.include?(formatted_attribute_name) || attr_data[:options][:include_data]
+              object = has_one_relationship(attribute_name, attr_data)
+              if object.nil?
+                # Spec: Resource linkage MUST be represented as one of the following:
+                # - null for empty to-one relationships.
+                # http://jsonapi.org/format/#document-structure-resource-relationships
+                data[formatted_attribute_name]['data'] = nil
+              else
+                related_object_serializer = JSONAPI::Serializer.find_serializer(object, @options)
+                data[formatted_attribute_name]['data'] = {
+                  'type' => related_object_serializer.type.to_s,
+                  'id' => related_object_serializer.id.to_s,
+                }
+              end
             end
           end
         end
@@ -133,29 +136,31 @@ module JSONAPI
         has_many_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          data[formatted_attribute_name] = {}
+          if opts[:include] && opts[:include].include?(formatted_attribute_name)
+            data[formatted_attribute_name] = {}
 
-          if attr_data[:options][:include_links]
-            links_self = relationship_self_link(attribute_name)
-            links_related = relationship_related_link(attribute_name)
-            data[formatted_attribute_name]['links'] = {} if links_self || links_related
-            data[formatted_attribute_name]['links']['self'] = links_self if links_self
-            data[formatted_attribute_name]['links']['related'] = links_related if links_related
-          end
+            if attr_data[:options][:include_links]
+              links_self = relationship_self_link(attribute_name)
+              links_related = relationship_related_link(attribute_name)
+              data[formatted_attribute_name]['links'] = {} if links_self || links_related
+              data[formatted_attribute_name]['links']['self'] = links_self if links_self
+              data[formatted_attribute_name]['links']['related'] = links_related if links_related
+            end
 
-          # Spec: Resource linkage MUST be represented as one of the following:
-          # - an empty array ([]) for empty to-many relationships.
-          # - an array of linkage objects for non-empty to-many relationships.
-          # http://jsonapi.org/format/#document-structure-resource-relationships
-          if @_include_linkages.include?(formatted_attribute_name) || attr_data[:options][:include_data]
-            data[formatted_attribute_name]['data'] = []
-            objects = has_many_relationship(attribute_name, attr_data) || []
-            objects.each do |obj|
-              related_object_serializer = JSONAPI::Serializer.find_serializer(obj, @options)
-              data[formatted_attribute_name]['data'] << {
-                'type' => related_object_serializer.type.to_s,
-                'id' => related_object_serializer.id.to_s,
-              }
+            # Spec: Resource linkage MUST be represented as one of the following:
+            # - an empty array ([]) for empty to-many relationships.
+            # - an array of linkage objects for non-empty to-many relationships.
+            # http://jsonapi.org/format/#document-structure-resource-relationships
+            if @_include_linkages.include?(formatted_attribute_name) || attr_data[:options][:include_data]
+              data[formatted_attribute_name]['data'] = []
+              objects = has_many_relationship(attribute_name, attr_data) || []
+              objects.each do |obj|
+                related_object_serializer = JSONAPI::Serializer.find_serializer(obj, @options)
+                data[formatted_attribute_name]['data'] << {
+                  'type' => related_object_serializer.type.to_s,
+                  'id' => related_object_serializer.id.to_s,
+                }
+              end
             end
           end
         end
@@ -414,7 +419,7 @@ module JSONAPI
       # Call the methods once now to avoid calling them twice when evaluating the if's below.
       attributes = serializer.attributes
       links = serializer.links
-      relationships = serializer.relationships
+      relationships = serializer.relationships(options)
       jsonapi = serializer.jsonapi
       meta = serializer.meta
       data['attributes'] = attributes if !attributes.empty?
