@@ -1,7 +1,7 @@
 # Modifications from JSONAPI::Serializers
 New Options are added:
-1. show_relationships
-2. show_relshp_included_data
+1. show_relationships (default - false)
+2. show_relshp_included_data default - false
 
 You can now tell the serializer, if you want the relationship data in primary data by specifying the
 option 'show_relationships: true' in the serialize method.
