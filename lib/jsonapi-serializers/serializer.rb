@@ -272,7 +272,7 @@ module JSONAPI
       options[:links] = options.delete('links') || options[:links]
       options[:fields] = options.delete('fields') || options[:fields] || {}
       options[:show_relationships] = options[:show_relationships].eql?(true)
-      options[:show_relshp_included_data] = options[:show_relshp_included_data].eql?(true)
+      options[:show_relshp_included_data] = (options[:show_relshp_included_data].eql?(nil) ? true : options[:show_relshp_included_data])
 
       # Deprecated: use serialize_errors method instead
       options[:errors] = options.delete('errors') || options[:errors]
