@@ -103,7 +103,11 @@ module JSONAPI
         has_one_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          if opts[:include] && opts[:include].include?(formatted_attribute_name)
+          # Show the relationship data only if it is NOT a primary data OR
+          # it is a primary data with include option contains this relation
+          show_data = opts[:primary_data].eql?(false) || (opts[:include] && opts[:include].include?(formatted_attribute_name))
+
+          if show_data
             data[formatted_attribute_name] = {}
 
             if attr_data[:options][:include_links]
@@ -136,7 +140,11 @@ module JSONAPI
         has_many_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          if opts[:include] && opts[:include].include?(formatted_attribute_name)
+          # Show the relationship data only if it is NOT a primary data OR
+          # it is a primary data with include option contains this relation
+          show_data = opts[:primary_data].eql?(false) || (opts[:include] && opts[:include].include?(formatted_attribute_name))
+
+          if show_data
             data[formatted_attribute_name] = {}
 
             if attr_data[:options][:include_links]
@@ -295,7 +303,8 @@ module JSONAPI
         include: includes,
         fields: fields,
         base_url: options[:base_url],
-        show_relationships: options[:show_relationships]
+        show_relationships: options[:show_relationships],
+        primary_data: true
       }
 
       if !options[:skip_collection_check] && options[:is_collection] && !objects.respond_to?(:each)
@@ -362,6 +371,7 @@ module JSONAPI
           included_passthrough_options[:namespace] = passthrough_options[:namespace]
           included_passthrough_options[:include_linkages] = data[:include_linkages]
           included_passthrough_options[:show_relationships] = options[:show_relshp_included_data]
+          included_passthrough_options[:primary_data] = false
           serialize_primary(data[:object], included_passthrough_options)
         end
       end
