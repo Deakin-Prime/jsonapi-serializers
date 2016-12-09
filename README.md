@@ -14,6 +14,164 @@ The option 'show_relshp_included_data: true' in the serialize method allows you 
 Other modifications
 1. 'relationships' data hash only shows if the relation is provided in the 'include' option is provided in the 'serialize' method.
 
+These changes means the following to happen:
+
+**Request**
+
+```json
+/api/v1/images/1
+
+{
+  "data": {
+    "type": "images",
+    "id": "1",
+    "attributes": {
+      "title": "Safety Manangement"
+    },
+    "links": {
+      "self": "http://localhost:3000/api/v1/images/1"
+    }
+  },
+  "links": {
+    "self": "http://localhost:3000/api/v1/images/1"
+  }
+}
+
+```
+
+
+```json
+/api/v1/images/1?included[]=comments
+
+{
+  "data": {
+    "type": "images",
+    "id": "1",
+    "attributes": {
+      "title": "Safety Manangement"
+    },
+    "links": {
+      "self": "http://localhost:3000/api/v1/images/1"
+    },
+    "relationships": {
+      "comments": {
+        "data": [
+          {
+            "type": "comments",
+            "id": "1"
+          }
+        ]
+      }
+    }
+  },
+  "links": {
+    "self": "http://localhost:3000/api/v1/images/1?included[]=comments"
+  },
+  "included": [
+    {
+      "type": "comments",
+      "id": "1",
+      "attributes": {
+        "title": "Degital Learning 1 and only ONE",
+        "url": "http://prosacco.name/felicia",
+        "description": "Farm-to-table artisan raw denim semiotics loko. Vinegar next level iphone. Etsy hoodie listicle tote bag ramps farm-to-table hammock keffiyeh. Photo booth wes anderson loko fap trust fund heirloom. Tote bag blog sartorial tofu.",
+      },
+      "links": {
+        "self": "http://localhost:3000/api/v1/comments/1"
+      }
+    }
+  ]
+}
+```
+
+Only included the the image attributes and comments relatioship data in primary & included hashes
+
+```json
+/api/v1/images/1?included[]=comments&included[]=comments.users&included[]=comments.roles
+
+{
+  "data": {
+    "type": "images",
+    "id": "1",
+    "attributes": {
+      "title": "Safety Manangement"
+    },
+    "links": {
+      "self": "http://localhost:3000/api/v1/images/1"
+    },
+    "relationships": {
+      "comments": {
+        "data": [
+          {
+            "type": "comments",
+            "id": "1"
+          }
+        ]
+      }
+    }
+  },
+  "links": {
+    "self": "http://localhost:3000/api/v1/images/1?included[]=comments&included[]=comments.users&included[]=comments.roles"
+  },
+  "included": [
+    {
+      "type": "comments",
+      "id": "1",
+      "attributes": {
+        "title": "Degital Learning 1 and only ONE",
+        "url": "http://prosacco.name/felicia",
+        "description": "Farm-to-table artisan raw denim semiotics loko. Vinegar next level iphone. Etsy hoodie listicle tote bag ramps farm-to-table hammock keffiyeh. Photo booth wes anderson loko fap trust fund heirloom. Tote bag blog sartorial tofu.",
+      },
+      "links": {
+        "self": "http://localhost:3000/api/v1/comments/1"
+      },
+      "relationships": {
+        "users": {
+          "links": {
+            "self": "http://localhost:3000/api/v1/comments/1/relationships/users",
+            "related": "http://localhost:3000/api/v1/comments/1/users"
+          },
+          "data": [
+            {
+              "type": "users",
+              "id": "1"
+            },
+            {
+              "type": "users",
+              "id": "2"
+            }
+          ]
+        },
+        "roles": {
+          "links": {
+            "self": "http://localhost:3000/api/v1/comments/1/relationships/roles",
+            "related": "http://localhost:3000/api/v1/comments/1/roles"
+          },
+          "data": [
+            {
+              "type": "roles",
+              "id": "1"
+            },
+            {
+              "type": "roles",
+              "id": "2"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+This will show the image attributes and comments relatioship data in primary & included hashes
+
+**PLUS**
+
+data of users, roles shows as relatioship hashes inside the comments in the included hash
+
+Only included the comments relatioship data in primary and included hashes
+
 # JSONAPI::Serializers
 
 [![Build Status](https://travis-ci.org/fotinakis/jsonapi-serializers.svg?branch=master)](https://travis-ci.org/fotinakis/jsonapi-serializers)

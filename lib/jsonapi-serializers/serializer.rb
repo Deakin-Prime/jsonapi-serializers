@@ -103,11 +103,8 @@ module JSONAPI
         has_one_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          # Show the relationship data only if it is NOT a primary data OR
-          # it is a primary data with include option contains this relation
-          show_data = opts[:primary_data].eql?(false) || (opts[:include] && opts[:include].include?(formatted_attribute_name))
-
-          if show_data
+          # Show the relationship data only if include option contains this relation
+          if opts[:include] && opts[:include].include?(formatted_attribute_name)
             data[formatted_attribute_name] = {}
 
             if attr_data[:options][:include_links]
@@ -140,11 +137,8 @@ module JSONAPI
         has_many_relationships.each do |attribute_name, attr_data|
           formatted_attribute_name = format_name(attribute_name)
 
-          # Show the relationship data only if it is NOT a primary data OR
-          # it is a primary data with include option contains this relation
-          show_data = opts[:primary_data].eql?(false) || (opts[:include] && opts[:include].include?(formatted_attribute_name))
-
-          if show_data
+          # Show the relationship data only if include option contains this relation
+          if opts[:include] && opts[:include].include?(formatted_attribute_name)
             data[formatted_attribute_name] = {}
 
             if attr_data[:options][:include_links]
@@ -372,6 +366,7 @@ module JSONAPI
           included_passthrough_options[:include_linkages] = data[:include_linkages]
           included_passthrough_options[:show_relationships] = options[:show_relshp_included_data]
           included_passthrough_options[:primary_data] = false
+          included_passthrough_options[:include] = absolute_included_paths(includes)
           serialize_primary(data[:object], included_passthrough_options)
         end
       end
@@ -576,5 +571,17 @@ module JSONAPI
       end
     end
     class << self; protected :merge_relationship_path; end
+
+    # Takes a list of relationship paths and returns a array of absolute paths.
+    # Example:
+    #   Given: ['comments', 'comments.views', 'comments.user']
+    #   Returns: ['comments', 'views', 'user']
+    def self.absolute_included_paths(paths)
+      paths.inject([]) do |r, path|
+        parts = path.split('.', 2)
+        r << parts.last.strip
+      end
+    end
+    class << self; protected :absolute_included_paths; end
   end
 end
